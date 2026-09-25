@@ -1,0 +1,14 @@
+federation_version: =2.15.4
+subgraphs:
+  products:
+    routing_url: http://localhost
+    schema:
+      file: products.graphql
+  orders:
+    routing_url: http://localhost
+    schema:
+      file: orders.graphql
+  customers:
+    routing_url: http://localhost
+    schema:
+      file: customers.graphql

@@ -1,0 +1,13 @@
+# Reports subgraph metrics and error codes to GraphOS Insights.
+# Studio → Insights → Subgraphs, and Errors grouped by code.
+# Restart rover dev after changing this file.
+# https://www.apollographql.com/docs/graphos/platform/insights/subgraphs
+telemetry:
+  apollo:
+    subgraph_metrics: true
+    errors:
+      preview_extended_error_metrics: enabled
+      subgraph:
+        all:
+          send: true
+          redaction_policy: extended

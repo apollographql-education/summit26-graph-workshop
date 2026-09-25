@@ -1,0 +1,25 @@
+{
+  "id": 1008,
+  "customerId": 2,
+  "status": "processing",
+  "createdAt": "2026-09-25T16:42:24.907Z",
+  "total": 40.97,
+  "shippingAddress": {
+    "line1": "Friedrichstraße 100",
+    "city": "Berlin",
+    "postalCode": "10117",
+    "country": "DE"
+  },
+  "items": [
+    {
+      "productId": 3,
+      "quantity": 1,
+      "price": 14.99
+    },
+    {
+      "productId": 4,
+      "quantity": 2,
+      "price": 12.99
+    }
+  ]
+}

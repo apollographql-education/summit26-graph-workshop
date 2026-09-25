@@ -1,0 +1,25 @@
+{
+  "id": 1001,
+  "customerId": 1,
+  "status": "delivered",
+  "createdAt": "2026-03-12T14:22:00.000Z",
+  "total": 69.97,
+  "shippingAddress": {
+    "line1": "1-2-3 Shibuya",
+    "city": "Tokyo",
+    "postalCode": "150-0002",
+    "country": "JP"
+  },
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 9.99
+    },
+    {
+      "productId": 5,
+      "quantity": 1,
+      "price": 49.99
+    }
+  ]
+}

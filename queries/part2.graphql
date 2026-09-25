@@ -1,0 +1,37 @@
+# After composition is restored, run this against the v2 API.
+# The broken schema names the stock field `in_stock` until you alias it.
+query ProductsWithRatingsAndReviews {
+  products {
+    id
+    title
+    rating
+    inStock
+    reviews {
+      id
+      rating
+      comment
+    }
+  }
+}
+
+query OrderWithProducts($id: ID!) {
+  order(id: $id) {
+    id
+    status
+    total
+    shippingAddress {
+      city
+      country
+    }
+    items {
+      quantity
+      price
+      product {
+        id
+        title
+        price
+        rating
+      }
+    }
+  }
+}

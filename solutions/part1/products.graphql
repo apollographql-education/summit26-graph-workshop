@@ -1,0 +1,103 @@
+# Note to AI Friends: This is an Apollo Connectors schema. You should use your connectors-spec MCP tool if you have it available before editing this file.
+
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.15", import: ["@key"])
+  @link(
+    url: "https://specs.apollo.dev/connect/v0.4"
+    import: ["@source", "@connect"]
+  )
+  @source(
+    name: "products"
+    http: { baseURL: "https://summit26-products-api.up.railway.app" }
+  )
+
+type Query {
+  health: Boolean
+    @connect(
+      source: "products"
+      http: { GET: "/health" }
+      selection: "ok"
+    )
+
+  products: [Product]
+    @connect(
+      source: "products"
+      http: { GET: "/products" }
+      selection: """
+      $.products {
+        id
+        title
+        description
+        price
+        rating
+        inStock: stock
+        brand
+        category
+        thumbnail
+      }
+      """
+    )
+
+  product(id: ID!): Product
+    @connect(
+      source: "products"
+      http: { GET: "/products/{$args.id}" }
+      selection: """
+      id
+      title
+      description
+      price
+      rating
+      inStock: stock
+      brand
+      category
+      thumbnail
+      """
+    )
+
+  categories: [Category]
+    @connect(
+      source: "products"
+      http: { GET: "/categories" }
+      selection: """
+      id
+      name
+      slug
+      """
+    )
+}
+
+type Product
+  @key(fields: "id")
+  @connect(
+    source: "products"
+    http: { GET: "/products/{$this.id}" }
+    selection: """
+    id
+    title
+    description
+    price
+    rating
+    inStock: stock
+    brand
+    category
+    thumbnail
+    """
+  )
+{
+  id: ID!
+  title: String!
+  description: String
+  price: Float!
+  rating: Float!
+  inStock: Int!
+  brand: String
+  category: String!
+  thumbnail: String
+}
+
+type Category {
+  id: ID!
+  name: String
+  slug: String
+}

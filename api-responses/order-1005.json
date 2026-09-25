@@ -1,0 +1,20 @@
+{
+  "id": 1005,
+  "customerId": 4,
+  "status": "cancelled",
+  "createdAt": "2026-03-30T08:17:00.000Z",
+  "total": 129.99,
+  "shippingAddress": {
+    "line1": "Marienplatz 1",
+    "city": "Munich",
+    "postalCode": "80331",
+    "country": "DE"
+  },
+  "items": [
+    {
+      "productId": 6,
+      "quantity": 1,
+      "price": 129.99
+    }
+  ]
+}

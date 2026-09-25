@@ -1,0 +1,128 @@
+# Note to AI Friends: This is an Apollo Connectors schema. You should use your connectors-spec MCP tool if you have it available before editing this file.
+
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.15", import: ["@key"])
+  @link(
+    url: "https://specs.apollo.dev/connect/v0.4"
+    import: ["@source", "@connect"]
+  )
+  @source(
+    name: "products"
+    http: { baseURL: "https://summit26-products-api.up.railway.app" }
+  )
+
+type Query {
+  health: Boolean
+    @connect(
+      source: "products"
+      http: { GET: "/health" }
+      selection: "ok"
+    )
+
+  products: [Product]
+    @connect(
+      source: "products"
+      http: { GET: "/products" }
+      selection: """
+      $.products {
+        id
+        title
+        description
+        price
+        unitPrice
+        rating
+        inStock: in_stock
+        brand
+        category
+        thumbnail
+      }
+      """
+    )
+
+  product(id: ID!): Product
+    @connect(
+      source: "products"
+      http: { GET: "/products/{$args.id}" }
+      selection: """
+      id
+      title
+      description
+      price
+      unitPrice
+      rating
+      inStock: in_stock
+      brand
+      category
+      thumbnail
+      """
+    )
+
+  categories: [Category]
+    @connect(
+      source: "products"
+      http: { GET: "/categories" }
+      selection: """
+      id
+      name
+      slug
+      """
+    )
+}
+
+type Product
+  @key(fields: "id")
+  @connect(
+    source: "products"
+    http: { GET: "/products/{$this.id}" }
+    selection: """
+    id
+    title
+    description
+    price
+    unitPrice
+    rating
+    inStock: in_stock
+    brand
+    category
+    thumbnail
+    """
+  )
+  @connect(
+    source: "products"
+    http: { GET: "/reviews" queryParams: "productIds: $batch.id" }
+    selection: """
+    id: productId
+    reviews {
+      id
+      rating
+      comment
+      reviewerName
+    }
+    """
+  )
+{
+  id: ID!
+  title: String!
+  description: String
+  price: Float @deprecated(reason: "Use unitPrice. price will be removed after 2026-12-01.")
+  unitPrice: Float
+  rating: Float
+  inStock: Boolean
+  brand: String
+  category: String!
+  thumbnail: String
+  reviews: [Review]
+}
+
+type Review {
+  id: ID!
+  rating: Int
+  comment: String
+  reviewerName: String
+}
+
+type Category {
+  id: ID!
+  name: String
+  slug: String
+}

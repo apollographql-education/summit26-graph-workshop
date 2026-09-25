@@ -1,0 +1,49 @@
+# Note to AI Friends: This is an Apollo Connectors schema. You should use your connectors-spec MCP tool if you have it available before editing this file.
+
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.15", import: ["@shareable"])
+  @link(
+    url: "https://specs.apollo.dev/connect/v0.4"
+    import: ["@source", "@connect"]
+  )
+  @source(
+    name: "customers"
+    http: { baseURL: "https://summit26-customers-api.up.railway.app" }
+  )
+
+type Query {
+  customer(id: ID!): Customer
+    @connect(
+      source: "customers"
+      http: { GET: "/customers/{$args.id}" }
+      selection: """
+      id
+      firstName
+      lastName
+      email
+      phone
+      address {
+        line1
+        city
+        postalCode
+        country
+      }
+      """
+    )
+}
+
+type Address @shareable {
+  line1: String
+  city: String
+  postalCode: String
+  country: String
+}
+
+type Customer {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  address: Address!
+}

@@ -1,0 +1,68 @@
+query GetProducts {
+  products {
+    id
+    title
+    price
+    rating
+    inStock
+    brand
+    category
+  }
+}
+
+query GetProduct($id: ID!) {
+  product(id: $id) {
+    id
+    title
+    description
+    price
+    rating
+    inStock
+    thumbnail
+  }
+}
+
+query GetCategories {
+  categories {
+    id
+    name
+    slug
+  }
+}
+
+query GetOrder($id: ID!) {
+  order(id: $id) {
+    id
+    status
+    createdAt
+    customerId
+    total
+    shippingAddress {
+      line1
+      city
+      postalCode
+      country
+    }
+    items {
+      productId
+      quantity
+      price
+    }
+  }
+}
+
+query GetCustomer($id: ID!) {
+  customer(id: $id) {
+    id
+    firstName
+    lastName
+    email
+    phone
+    address {
+      line1
+      city
+      postalCode
+      country
+    }
+  }
+}
