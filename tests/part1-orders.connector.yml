@@ -1,5 +1,5 @@
 config:
-  schema: solutions/part1/orders.graphql
+  schema: orders.graphql
   name: part1-orders
 
 tests:

@@ -2,8 +2,6 @@
 
 A products subgraph is already in Studio. Add the Orders REST API with a Connectors subgraph, then diagnose a broken "day 2" launch with GraphOS.
 
-Solution schemas live under [`solutions/`](solutions/) — skip those until a mentor says to look.
-
 ## Before you start
 
 Installs and the GraphOS account are in the pre-workshop email. Do that before the session.
@@ -51,7 +49,7 @@ rover subgraph publish "$APOLLO_GRAPH_REF" \
 rover connector test
 ```
 
-[`tests/part1-orders.connector.yml`](tests/part1-orders.connector.yml) targets `solutions/part1/orders.graphql`. Point `config.schema` at `orders.graphql` to test *your* connector — the coordinate must match (`Query.order`). [`tests/part1-customers.connector.yml`](tests/part1-customers.connector.yml) covers the published customers subgraph.
+[`tests/part1-orders.connector.yml`](tests/part1-orders.connector.yml) runs against `orders.graphql`. The coordinate must match (`Query.order`). [`tests/part1-customers.connector.yml`](tests/part1-customers.connector.yml) covers the published customers subgraph.
 
 ## Part 2 — Find, fix, ship
 
@@ -75,4 +73,4 @@ rover subgraph check "$APOLLO_GRAPH_REF" \
   --name products
 ```
 
-Do not publish the proposal unless you have chosen a hard cutover. See [solutions/part2-fixed/BREAKING-CHANGE.md](solutions/part2-fixed/BREAKING-CHANGE.md).
+Do not publish the proposal unless you have chosen a hard cutover. See [solutions/BREAKING-CHANGE.md](solutions/BREAKING-CHANGE.md).

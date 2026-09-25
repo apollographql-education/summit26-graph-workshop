@@ -1,5 +1,5 @@
 config:
-  schema: solutions/part1/customers.graphql
+  schema: customers.graphql
   name: part1-customers
 
 tests:

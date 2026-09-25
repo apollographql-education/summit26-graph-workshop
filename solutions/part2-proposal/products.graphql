@@ -30,7 +30,7 @@ type Query {
         description
         unitPrice
         rating
-        inStock: in_stock
+        in_stock
         brand
         category
         thumbnail
@@ -48,7 +48,7 @@ type Query {
       description
       unitPrice
       rating
-      inStock: in_stock
+      in_stock
       brand
       category
       thumbnail
@@ -78,23 +78,10 @@ type Product
     description
     unitPrice
     rating
-    inStock: in_stock
+    in_stock
     brand
     category
     thumbnail
-    """
-  )
-  @connect(
-    source: "products"
-    http: { GET: "/reviews" queryParams: "productIds: $batch.id" }
-    selection: """
-    id: productId
-    reviews {
-      id
-      rating
-      comment
-      reviewerName
-    }
     """
   )
 {
@@ -102,12 +89,24 @@ type Product
   title: String!
   description: String
   unitPrice: Float!
-  rating: Float
-  inStock: Boolean
+  rating: Float!
+  in_stock: Boolean
   brand: String
   category: String!
   thumbnail: String
   reviews: [Review]
+    @connect(
+      source: "products"
+      http: { GET: "/products/{$this.id}/reviews" }
+      selection: """
+      $.reviews {
+        id
+        rating
+        comment
+        reviewerName
+      }
+      """
+    )
 }
 
 type Review {

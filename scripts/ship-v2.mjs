@@ -116,7 +116,7 @@ if (publish.status !== 0) {
 
 console.log("");
 console.log("Done. Another team's ship is now on your graph.");
-console.log("Open Studio → Launches and Checks. Diagnose from that evidence — do not open solutions/part2-fixed.");
+console.log("Open Studio → Launches and Checks. Diagnose from that evidence.");
 
 function loadDotEnv(path) {
   if (!existsSync(path)) {

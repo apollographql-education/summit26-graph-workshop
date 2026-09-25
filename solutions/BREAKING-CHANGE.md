@@ -10,8 +10,8 @@ Keep `price` for those clients. Do not publish the proposal while their request 
 
 ```graphql
 type Product {
-  price: Float @deprecated(reason: "Use unitPrice. price will be removed after 2026-12-01.")
-  unitPrice: Float
+  price: Float! @deprecated(reason: "Use unitPrice. price will be removed after 2026-12-01.")
+  unitPrice: Float!
 }
 ```
 
@@ -26,7 +26,7 @@ This is already in the v2 products schema. Remove `price` later, when Insights s
 
 ## Option B — hard cutover
 
-Replace `price` with `unitPrice` in one publish of the products subgraph (see [../part2-proposal/products.graphql](../part2-proposal/products.graphql)).
+Replace `price` with `unitPrice` in one publish of the products subgraph (see [part2-proposal/products.graphql](part2-proposal/products.graphql)).
 
 ```bash
 rover subgraph check "$APOLLO_GRAPH_REF" \
