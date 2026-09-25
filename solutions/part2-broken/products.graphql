@@ -16,7 +16,7 @@ type Query {
     @connect(
       source: "products"
       http: { GET: "/health" }
-      selection: "ok"
+      selection: "$.ok"
     )
 
   products: [Product]
