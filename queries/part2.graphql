@@ -35,3 +35,59 @@ query OrderWithProducts($id: ID!) {
     }
   }
 }
+
+query GetCart {
+  cart {
+    total
+    items {
+      productId
+      quantity
+      price
+      product {
+        id
+        title
+      }
+    }
+  }
+}
+
+mutation AddToCart($productId: ID!, $quantity: Int! = 1) {
+  addToCart(productId: $productId, quantity: $quantity) {
+    total
+    items {
+      productId
+      quantity
+      price
+    }
+  }
+}
+
+mutation RemoveFromCart($productId: ID!) {
+  removeFromCart(productId: $productId) {
+    total
+    items {
+      productId
+      quantity
+    }
+  }
+}
+
+mutation Checkout($customerId: ID!) {
+  checkout(customerId: $customerId) {
+    id
+    status
+    customerId
+    total
+    shippingAddress {
+      line1
+      city
+      postalCode
+      country
+    }
+    items {
+      productId
+      quantity
+      price
+    }
+  }
+}

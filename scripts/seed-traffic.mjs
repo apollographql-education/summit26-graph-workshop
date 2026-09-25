@@ -106,6 +106,25 @@ const sharedOperations = [
     operationName: "ProductsWithRatingsAndReviews",
     weight: 2,
   },
+  { document: part2Document, operationName: "GetCart", weight: 2 },
+  {
+    document: part2Document,
+    operationName: "AddToCart",
+    weight: 2,
+    variables: () => ({ productId: pick(productIds), quantity: 1 }),
+  },
+  {
+    document: part2Document,
+    operationName: "RemoveFromCart",
+    weight: 1,
+    variables: () => ({ productId: pick(productIds) }),
+  },
+  {
+    document: part2Document,
+    operationName: "Checkout",
+    weight: 1,
+    variables: () => ({ customerId: pick(customerIds) }),
+  },
 ];
 
 const legacyProduct = `
