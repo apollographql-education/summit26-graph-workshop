@@ -30,7 +30,7 @@ const durationMs = Number(process.env.DURATION_MS ?? 120_000);
 const minDelayMs = Number(process.env.MIN_DELAY_MS ?? 1_500);
 const maxDelayMs = Number(process.env.MAX_DELAY_MS ?? 4_000);
 
-const queriesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "queries");
+const queriesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "attendee", "queries");
 
 // The v2 schema exposes these two fields in snake_case. The attendee query
 // files keep the camelCase names on purpose (that is the lint exercise).

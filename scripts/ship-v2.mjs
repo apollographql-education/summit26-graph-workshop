@@ -21,11 +21,11 @@ import { fileURLToPath } from "node:url";
 const REGISTRY_URL = "https://graphql.api.apollographql.com/api/graphql";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const envFile = join(root, ".env");
+const envFile = join(root, "attendee", ".env");
 const brokenProducts = join(root, "solutions", "part2-broken", "products.graphql");
 const brokenOrders = join(root, "solutions", "part2-broken", "orders.graphql");
-const attendeeProducts = join(root, "products.graphql");
-const attendeeOrders = join(root, "orders.graphql");
+const attendeeProducts = join(root, "attendee", "products.graphql");
+const attendeeOrders = join(root, "attendee", "orders.graphql");
 
 loadDotEnv(envFile);
 

@@ -15,30 +15,10 @@ extend schema
   )
 
 type Query {
-  order(id: ID!): Order
-    @connect(
-      source: "orders"
-      http: { GET: "/orders/{$args.id}" }
-      selection: """
-      id
-      customerId
-      status
-      created_at: createdAt
-      total
-      shippingAddress {
-        line1
-        city
-        postalCode
-        country
-      }
-      items {
-        productId
-        quantity
-        price
-        product: { id: productId }
-      }
-      """
-    )
+  # Placeholder so Query has a field and the schema composes. Remove this
+  # once your own `order(id: ID!): Order` field below returns data.
+  ordersReady: Boolean
+    @connect(source: "orders", http: { GET: "/cart" }, selection: "$(true)")
 
   cart: Cart
     @connect(
