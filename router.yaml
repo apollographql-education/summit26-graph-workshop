@@ -2,6 +2,9 @@
 # Studio → Insights → Subgraphs, and Errors grouped by code.
 # Restart rover dev after changing this file.
 # https://www.apollographql.com/docs/graphos/platform/insights/subgraphs
+supergraph:
+  enable_result_coercion_errors: true
+
 telemetry:
   apollo:
     subgraph_metrics: true
