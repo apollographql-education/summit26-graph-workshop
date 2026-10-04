@@ -7,6 +7,11 @@
  *   - What is erroring? GetProducts selects rating. Some products omit it.
  *   - Who still uses deprecated Product.price? storefront-ios and
  *     storefront-android. storefront-web has moved to unitPrice.
+ *     catalog-agent still selects both while it audits the migration.
+ *
+ * Storefront operations are separate screens: catalog, product page, cart,
+ * checkout, order confirmation, and the reviews tab. Agent clients send their
+ * own operations rather than replaying the storefront ones.
  *
  * Start this once composition succeeds, then open Studio → Insights
  * (last hour). Metrics land within a few minutes. Restart rover dev after
@@ -29,7 +34,7 @@ const routerUrl = (process.env.ROUTER_URL ?? "http://localhost:4000").replace(
   "",
 );
 const attendeeId = process.env.ATTENDEE_ID?.trim() || "seat-001";
-const durationMs = Number(process.env.DURATION_MS ?? 120_000);
+const durationMs = Number(process.env.DURATION_MS ?? 300_000);
 const minDelayMs = Number(process.env.MIN_DELAY_MS ?? 1_500);
 const maxDelayMs = Number(process.env.MAX_DELAY_MS ?? 4_000);
 
@@ -81,12 +86,6 @@ const productIds = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12
 const orderIds = ["1001", "1002", "1003", "1004", "1005", "1006"];
 const customerIds = ["1", "2", "3", "4"];
 
-const legacyClients = [
-  { name: "storefront-ios", version: "3.2.0", weight: 3 },
-  { name: "storefront-android", version: "3.1.1", weight: 2 },
-];
-const migratedClients = [{ name: "storefront-web", version: "2.0.0", weight: 6 }];
-
 const legacyProducts = `
 query GetProducts {
   products {
@@ -94,7 +93,7 @@ query GetProducts {
     title
     price
     rating
-    inStock
+    in_stock
     brand
     category
   }
@@ -115,11 +114,21 @@ query GetProducts {
 }
 `;
 
+const homeRail = `
+query HomeRail {
+  products {
+    id
+    title
+    thumbnail
+    category
+  }
+}
+`;
+
 const productReviews = `
 query ProductReviews($id: ID!) {
   product(id: $id) {
     id
-    title
     reviews {
       id
       rating
@@ -130,31 +139,29 @@ query ProductReviews($id: ID!) {
 }
 `;
 
-const orderReceipt = `
-query OrderReceipt($id: ID!) {
-  order(id: $id) {
+const orderConfirmation = `
+query OrderConfirmation($orderId: ID!, $customerId: ID!) {
+  order(id: $orderId) {
     id
     status
-    customerId
     createdAt
     total
     shippingAddress {
-      line1
       city
-      postalCode
       country
     }
     items {
-      productId
       quantity
-      price
       product {
         id
         title
-        description
-        thumbnail
       }
     }
+  }
+  customer(id: $customerId) {
+    firstName
+    lastName
+    email
   }
 }
 `;
@@ -198,17 +205,21 @@ const sharedOperations = [
     weight: 1,
     variables: () => ({ customerId: pick(customerIds) }),
   },
+  { document: homeRail, operationName: "HomeRail", weight: 2 },
   {
     document: productReviews,
     operationName: "ProductReviews",
-    weight: 1,
+    weight: 2,
     variables: () => ({ id: pick(productIds) }),
   },
   {
-    document: orderReceipt,
-    operationName: "OrderReceipt",
+    document: orderConfirmation,
+    operationName: "OrderConfirmation",
     weight: 2,
-    variables: () => ({ id: pick(orderIds) }),
+    variables: () => ({
+      orderId: pick(orderIds),
+      customerId: pick(customerIds),
+    }),
   },
 ];
 
@@ -217,9 +228,11 @@ query GetProduct($id: ID!) {
   product(id: $id) {
     id
     title
+    description
     price
     rating
     in_stock
+    thumbnail
   }
 }
 `;
@@ -229,9 +242,11 @@ query GetProduct($id: ID!) {
   product(id: $id) {
     id
     title
+    description
     unitPrice
     rating
-    inStock
+    in_stock
+    thumbnail
   }
 }
 `;
@@ -264,108 +279,171 @@ query OrderWithProducts($id: ID!) {
 }
 `;
 
-const legacyBrowse = `
-query BrowseProducts {
-  products {
-    id
-    title
-    description
-    price
-    brand
-    category
-    thumbnail
-    in_stock
-  }
-}
-`;
-
-const migratedBrowse = `
-query BrowseProducts {
-  products {
-    id
-    title
-    description
-    unitPrice
-    brand
-    category
-    thumbnail
-    in_stock
-  }
-}
-`;
-
-const legacyProductDetails = `
-query GetProductDetails($id: ID!) {
-  product(id: $id) {
-    id
-    title
-    description
-    price
-    brand
-    category
-    thumbnail
-    in_stock
-  }
-}
-`;
-
-const migratedProductDetails = `
-query GetProductDetails($id: ID!) {
-  product(id: $id) {
-    id
-    title
-    description
-    unitPrice
-    brand
-    category
-    thumbnail
-    in_stock
-  }
-}
-`;
-
-const legacyCartDetails = `
-query CartWithProductDetails {
+const legacyCheckoutSummary = `
+query CheckoutSummary {
   cart {
     total
     items {
-      productId
       quantity
-      price
       product {
         id
         title
-        description
+        thumbnail
         price
-        brand
-        category
-        thumbnail
-        in_stock
       }
     }
   }
 }
 `;
 
-const migratedCartDetails = `
-query CartWithProductDetails {
+const migratedCheckoutSummary = `
+query CheckoutSummary {
   cart {
+    total
+    items {
+      quantity
+      product {
+        id
+        title
+        thumbnail
+        unitPrice
+      }
+    }
+  }
+}
+`;
+
+const supportTicket = `
+query SupportTicket($orderId: ID!, $customerId: ID!) {
+  order(id: $orderId) {
+    id
+    status
+    createdAt
     total
     items {
       productId
       quantity
-      price
+    }
+  }
+  customer(id: $customerId) {
+    id
+    firstName
+    lastName
+    email
+    phone
+  }
+}
+`;
+
+const customerLookup = `
+query CustomerLookup($id: ID!) {
+  customer(id: $id) {
+    id
+    email
+    phone
+  }
+}
+`;
+
+const inventoryLevels = `
+query InventoryLevels {
+  products {
+    id
+    title
+    brand
+    in_stock
+  }
+}
+`;
+
+const productAvailability = `
+query ProductAvailability($id: ID!) {
+  product(id: $id) {
+    id
+    title
+    in_stock
+  }
+}
+`;
+
+const recommendationCard = `
+query RecommendationCard($id: ID!) {
+  product(id: $id) {
+    id
+    title
+    brand
+    category
+    thumbnail
+    description
+    unitPrice
+  }
+}
+`;
+
+const recommendationContext = `
+query RecommendationContext($id: ID!) {
+  product(id: $id) {
+    id
+    brand
+    category
+    reviews {
+      rating
+      comment
+    }
+  }
+}
+`;
+
+const packingSlip = `
+query PackingSlip($id: ID!) {
+  order(id: $id) {
+    id
+    shippingAddress {
+      line1
+      city
+      postalCode
+      country
+    }
+    items {
+      productId
+      quantity
       product {
         id
         title
-        description
-        unitPrice
-        brand
-        category
-        thumbnail
-        in_stock
       }
     }
+  }
+}
+`;
+
+const orderStatus = `
+query OrderStatus($id: ID!) {
+  order(id: $id) {
+    id
+    status
+    createdAt
+  }
+}
+`;
+
+const priceMigrationAudit = `
+query PriceMigrationAudit {
+  products {
+    id
+    title
+    price
+    unitPrice
+  }
+}
+`;
+
+const productPriceCheck = `
+query ProductPriceCheck($id: ID!) {
+  product(id: $id) {
+    id
+    title
+    price
+    unitPrice
   }
 }
 `;
@@ -386,14 +464,7 @@ const operationsByAudience = {
       weight: 2,
       variables: () => ({ id: pick(orderIds) }),
     },
-    { document: legacyBrowse, operationName: "BrowseProducts", weight: 3 },
-    {
-      document: legacyProductDetails,
-      operationName: "GetProductDetails",
-      weight: 2,
-      variables: () => ({ id: pick(productIds) }),
-    },
-    { document: legacyCartDetails, operationName: "CartWithProductDetails", weight: 2 },
+    { document: legacyCheckoutSummary, operationName: "CheckoutSummary", weight: 2 },
   ],
   migrated: [
     ...sharedOperations,
@@ -410,16 +481,98 @@ const operationsByAudience = {
       weight: 2,
       variables: () => ({ id: pick(orderIds) }),
     },
-    { document: migratedBrowse, operationName: "BrowseProducts", weight: 3 },
-    {
-      document: migratedProductDetails,
-      operationName: "GetProductDetails",
-      weight: 2,
-      variables: () => ({ id: pick(productIds) }),
-    },
-    { document: migratedCartDetails, operationName: "CartWithProductDetails", weight: 2 },
+    { document: migratedCheckoutSummary, operationName: "CheckoutSummary", weight: 2 },
   ],
 };
+
+const supportOperations = [
+  {
+    document: supportTicket,
+    operationName: "SupportTicket",
+    weight: 3,
+    variables: () => ({
+      orderId: pick(orderIds),
+      customerId: pick(customerIds),
+    }),
+  },
+  {
+    document: customerLookup,
+    operationName: "CustomerLookup",
+    weight: 2,
+    variables: () => ({ id: pick(customerIds) }),
+  },
+];
+
+const inventoryOperations = [
+  { document: inventoryLevels, operationName: "InventoryLevels", weight: 3 },
+  {
+    document: productAvailability,
+    operationName: "ProductAvailability",
+    weight: 2,
+    variables: () => ({ id: pick(productIds) }),
+  },
+];
+
+const recommendationOperations = [
+  {
+    document: recommendationCard,
+    operationName: "RecommendationCard",
+    weight: 3,
+    variables: () => ({ id: pick(productIds) }),
+  },
+  {
+    document: recommendationContext,
+    operationName: "RecommendationContext",
+    weight: 2,
+    variables: () => ({ id: pick(productIds) }),
+  },
+];
+
+const fulfillmentOperations = [
+  {
+    document: packingSlip,
+    operationName: "PackingSlip",
+    weight: 3,
+    variables: () => ({ id: pick(orderIds) }),
+  },
+  {
+    document: orderStatus,
+    operationName: "OrderStatus",
+    weight: 2,
+    variables: () => ({ id: pick(orderIds) }),
+  },
+];
+
+const catalogOperations = [
+  { document: priceMigrationAudit, operationName: "PriceMigrationAudit", weight: 3 },
+  {
+    document: productPriceCheck,
+    operationName: "ProductPriceCheck",
+    weight: 2,
+    variables: () => ({ id: pick(productIds) }),
+  },
+];
+
+const trafficSources = [
+  { name: "storefront-ios", version: "3.2.0", weight: 4, operations: operationsByAudience.legacy },
+  {
+    name: "storefront-android",
+    version: "3.1.1",
+    weight: 3,
+    operations: operationsByAudience.legacy,
+  },
+  { name: "storefront-web", version: "2.0.0", weight: 6, operations: operationsByAudience.migrated },
+  { name: "support-agent", version: "1.4.0", weight: 3, operations: supportOperations },
+  { name: "inventory-agent", version: "0.9.2", weight: 3, operations: inventoryOperations },
+  {
+    name: "recommendations-agent",
+    version: "1.1.0",
+    weight: 3,
+    operations: recommendationOperations,
+  },
+  { name: "fulfillment-agent", version: "2.3.1", weight: 3, operations: fulfillmentOperations },
+  { name: "catalog-agent", version: "0.3.0", weight: 2, operations: catalogOperations },
+];
 
 function pick(items) {
   return items[Math.floor(Math.random() * items.length)];
@@ -473,11 +626,8 @@ console.log(
 );
 
 while (Date.now() < end) {
-  const client = pickWeighted([...legacyClients, ...migratedClients]);
-  const audience = migratedClients.some((item) => item.name === client.name)
-    ? "migrated"
-    : "legacy";
-  await graphql(pickWeighted(operationsByAudience[audience]), client);
+  const client = pickWeighted(trafficSources);
+  await graphql(pickWeighted(client.operations), client);
   sent += 1;
   const remaining = end - Date.now();
   if (remaining <= 0) {
