@@ -30,7 +30,7 @@ type Query {
         description
         price
         rating
-        in_stock
+        inStock: stock
         brand
         category
         thumbnail
@@ -48,7 +48,7 @@ type Query {
       description
       price
       rating
-      in_stock
+      inStock: stock
       brand
       category
       thumbnail
@@ -78,7 +78,7 @@ type Product
     description
     price
     rating
-    in_stock
+    inStock: stock
     brand
     category
     thumbnail
@@ -90,7 +90,7 @@ type Product
   description: String
   price: Float!
   rating: Float!
-  in_stock: Boolean
+  inStock: Int!
   brand: String
   category: String!
   thumbnail: String
